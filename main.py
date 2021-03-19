@@ -40,8 +40,10 @@ for y in range(height):
             print(yStepSize)
 
         avg = pixel1
+        print("diff", diff)
+        print("avg", avg)
 
-        #fillArea(x, x+1, y, y+1, avg, diff)
+        fillArea(x, x+1, y, y+1, img, avg)
 
         diff[y].append(avg)
 
