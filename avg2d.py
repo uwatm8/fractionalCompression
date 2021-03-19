@@ -22,7 +22,6 @@ columnAvg = []
 outImg = []
 for y in range(height):
     rowAvg.append(img[y:y+1].mean(axis=0).mean(axis=0))
-    print(img[y:y+1].mean(axis=0).mean(axis=0))
 
 for x in range(width):
     # TODO optimize
@@ -42,7 +41,7 @@ for x in range(width):
 for y in range(height):
     outImg.append([])
     for x in range(width):
-        outImg[y].append(columnAvg[x])
+        outImg[y].append((rowAvg[y]+columnAvg[x])/2)
 
 npImg = np.uint8(outImg)
-cv2.imwrite('out2.jpg', npImg)
+cv2.imwrite('avg2d.jpg', npImg)
