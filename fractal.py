@@ -24,14 +24,24 @@ def fillArea(x1, x2, y1, y2, img, value):
 
 
 def getAreaLoss(x1, x2, y1, y2, img):
-    avg = getAreaAverage(x1, x2, y1, y2, img)
-    loss = 0
-    for x in range(x2-x1):
-        for y in range(y2-y1):
-            diff = abs(img[y][x]-avg)
-            for i in range(len(diff)):
-                loss += diff[i]
-    return loss
+
+    if True:
+
+        avg = getAreaAverage(x1, x2, y1, y2, img)
+
+        # fast method does not give same loss as slow version for some reason
+        avgArr = [x[:] for x in [[avg] * (x2-x1)] * (y2-y1)]
+        return abs(img[y1:y2, x1:x2] -
+                   avgArr).sum(axis=0).sum(axis=0).sum(axis=0)
+    else:
+        loss = 0
+        for x in range(x2-x1):
+            for y in range(y2-y1):
+                diff = abs(img[y][x]-avg)
+                for i in range(len(diff)):
+                    loss += diff[i]
+
+        return loss
 
 
 def getDeeperAreas(x1, x2, y1, y2, img, depth):
@@ -133,12 +143,13 @@ def doAreaFractal(area, areas):
     for newArea in newAreas:
         addToAreaQueue(newArea, areas)
     end4 = time.time()
+    '''print('aaaaa')
     print('2', end2-start2)
     print('3', end3-start3)
-    print('3', end4-start4)
+    print('4', end4-start4)'''
 
 
-maxDepth = 10000
+maxDepth = 1000
 maxFractalDepth = 0
 
 for i in range(maxDepth):
