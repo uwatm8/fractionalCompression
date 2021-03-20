@@ -50,12 +50,12 @@ def getAreaLoss(x1, x2, y1, y2, img):
 rowAvg = []
 columnAvg = []
 
-avg = getAreaAverage(0, width-1, 0, height-1, img)
+avg = getAreaAverage(0, width, 0, height, img)
 
 areas = []
 
 
-def getDeeperAreas(x1, x2, y1, y2, img):
+def getDeeperAreas(x1, x2, y1, y2, img, depth):
 
     xAvg = (x1+x2)//2
     yAvg = (y1+y2)//2
@@ -64,30 +64,38 @@ def getDeeperAreas(x1, x2, y1, y2, img):
         'x1': x1,
         'x2': xAvg,
         'y1': y1,
-        'y2': yAvg
+        'y2': yAvg,
+        'loss': getAreaLoss(x1, xAvg, y1, yAvg, img),
+        'depth': depth+1
     },
         {
         'x1': x1,
         'x2': xAvg,
         'y1': yAvg,
-        'y2': y2-1
+        'y2': y2,
+        'loss': getAreaLoss(x1, xAvg, yAvg,  y2, img),
+        'depth': depth+1
     },
         {
         'x1': xAvg,
-        'x2': x2-1,
+        'x2': x2,
         'y1': y1,
-        'y2': yAvg
+        'y2': yAvg,
+        'loss': getAreaLoss(xAvg, x2, y1, yAvg, img),
+        'depth': depth+1
     },
         {
         'x1': xAvg,
-        'x2': x2-1,
+        'x2': x2,
         'y1': yAvg,
-        'y2': y2-1
+        'y2': y2,
+        'loss': getAreaLoss(xAvg, x2, yAvg, y2, img),
+        'depth': depth+1
     },
     ]
 
 
-areas = getDeeperAreas(0, width, 0, height, img)
+areas = getDeeperAreas(0, width, 0, height, img, 1)
 
 
 outImg = []
@@ -96,17 +104,49 @@ for y in range(height):
     for x in range(width):
         outImg[y].append(avg)
 
-for area in areas:
-    areaLoss = getAreaLoss(area['x1'],
-                           area['x2'], area['y1'], area['y2'], img)
-    print('area', area)
-    print('loss', areaLoss)
+
+def doAreaFractal(area, areas):
+    areas.remove(area)
+
+    # print(areas)
+
+    # areaLoss = getAreaLoss(area['x1'],
+    #                       area['x2'], area['y1'], area['y2'], img)
 
     areaAvg = getAreaAverage(area['x1'],
                              area['x2'], area['y1'], area['y2'], img)
 
     fillArea(area['x1'],
              area['x2'], area['y1'], area['y2'], outImg, areaAvg)
+
+    newAreas = getDeeperAreas(area['x1'],
+                              area['x2'], area['y1'], area['y2'], img, area['depth'])
+
+    for newArea in newAreas:
+        areas.append(newArea)
+
+
+maxDepth = 10000
+maxFractalDepth = 0
+
+for i in range(maxDepth):
+    biggestLoss = 0
+    biggestLossIndex = 3
+
+    if not i % 100:
+        print('i', i)
+
+    for j in range(len(areas)):
+        areaLoss = areas[j]['loss']
+        if biggestLoss < areaLoss:
+            biggestLoss = areaLoss
+            biggestLossIndex = j
+
+    doAreaFractal(areas[biggestLossIndex], areas)
+    if maxFractalDepth < areas[biggestLossIndex]['depth']:
+        maxFractalDepth = areas[biggestLossIndex]['depth']
+        print('new max depth', maxFractalDepth)
+
 
 npImg = np.uint8(outImg)
 cv2.imwrite('frac.jpg', npImg)
