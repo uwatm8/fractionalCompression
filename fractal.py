@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 import sys
+import time
 import math
 
 path = "./src.jpg"
@@ -10,12 +11,7 @@ img = cv2.imread(path)
 
 
 def getAreaAverage(x1, x2, y1, y2, img):
-    acc = [0, 0, 0]
-    for x in range(x2-x1):
-        for y in range(y2-y1):
-            acc += img[y+y1][x+x1]
-
-    return acc // ((x2-x1)*(y2-y1))
+    return img[y1:y2, x1:x2].mean(axis=0).mean(axis=0)
 
 
 def fillArea(x1, x2, y1, y2, img, value):
@@ -92,8 +88,6 @@ def printAreasLoss(areas):
         print("loss", i, areas[i]['loss'])
 
 
-printAreasLoss(areas)
-
 for y in range(height):
     outImg.append([])
     for x in range(width):
@@ -127,13 +121,21 @@ def doAreaFractal(area, areas):
     areaAvg = getAreaAverage(area['x1'],
                              area['x2'], area['y1'], area['y2'], img)
 
+    start2 = time.time()
     fillArea(area['x1'],
              area['x2'], area['y1'], area['y2'], outImg, areaAvg)
-
-    for newArea in getDeeperAreas(area['x1'],
-                                  area['x2'], area['y1'], area['y2'], img, area['depth']):
-
+    end2 = time.time()
+    start3 = time.time()
+    newAreas = getDeeperAreas(area['x1'],
+                              area['x2'], area['y1'], area['y2'], img, area['depth'])
+    end3 = time.time()
+    start4 = time.time()
+    for newArea in newAreas:
         addToAreaQueue(newArea, areas)
+    end4 = time.time()
+    print('2', end2-start2)
+    print('3', end3-start3)
+    print('3', end4-start4)
 
 
 maxDepth = 10000
