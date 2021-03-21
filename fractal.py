@@ -4,6 +4,8 @@ import sys
 import time
 import math
 
+debug = True
+
 path = "./src.jpg"
 
 height, width = cv2.imread(path, 0).shape
@@ -11,10 +13,22 @@ img = cv2.imread(path)
 
 
 def getAreaAverage(x1, x2, y1, y2, img):
-    return img[y1:y2, x1:x2].mean(axis=0).mean(axis=0)
+    if x2-x1 == 0 or y2-x1 == 0:
+        print('broooo')
+
+    arrSlice = img[y1:y2, x1:x2]
+
+    if not len(arrSlice):
+        return [0, 0, 0]
+
+    return arrSlice.mean(axis=0).mean(axis=0)
 
 
 def fillArea(x1, x2, y1, y2, img, value):
+    '''npImg = np.array(img)
+    npImg[y1:y2, x1:x2] = [x[:] for x in [[value] * (x2-x1)] * (y2-y1)]
+    img = npImg.tolist()'''
+
     height = len(img)
     width = len(img[0])
     for x in range(x2-x1):
@@ -25,12 +39,18 @@ def fillArea(x1, x2, y1, y2, img, value):
 
 def getAreaLoss(x1, x2, y1, y2, img):
 
-    if True:
+    if x2-x1 == 0 or y2-x1 == 0:
+        return 0
 
-        avg = getAreaAverage(x1, x2, y1, y2, img)
+    avg = getAreaAverage(x1, x2, y1, y2, img)
 
+    if True or (y2-y1 > 2 and y2-y1 > 2):
         # fast method does not give same loss as slow version for some reason
         avgArr = [x[:] for x in [[avg] * (x2-x1)] * (y2-y1)]
+
+        if not len(avgArr):
+            return 0
+
         return abs(img[y1:y2, x1:x2] -
                    avgArr).sum(axis=0).sum(axis=0).sum(axis=0)
     else:
@@ -127,45 +147,35 @@ def addToAreaQueue(area, areas):
 
 def doAreaFractal(area, areas):
     areas.remove(area)
-
     areaAvg = getAreaAverage(area['x1'],
                              area['x2'], area['y1'], area['y2'], img)
 
-    start2 = time.time()
-    fillArea(area['x1'],
-             area['x2'], area['y1'], area['y2'], outImg, areaAvg)
-    end2 = time.time()
-    start3 = time.time()
+    fillArea(area['x1'], area['x2'], area['y1'], area['y2'], outImg, areaAvg)
+
     newAreas = getDeeperAreas(area['x1'],
                               area['x2'], area['y1'], area['y2'], img, area['depth'])
-    end3 = time.time()
-    start4 = time.time()
     for newArea in newAreas:
         addToAreaQueue(newArea, areas)
-    end4 = time.time()
-    '''print('aaaaa')
-    print('2', end2-start2)
-    print('3', end3-start3)
-    print('4', end4-start4)'''
 
 
-maxDepth = 1000
+maxDepth = 50000
 maxFractalDepth = 0
 
+biggestLossIndex = 0
 for i in range(maxDepth):
     biggestLoss = 0
-    biggestLossIndex = 3
-
-    if not i % 20:
-        print('i', i)
 
     biggestLossIndex = len(areas)-1
 
     doAreaFractal(areas[biggestLossIndex], areas)
+    if debug and not i % 1000:
+        if i != 0:
+            print('i', i, 'loss', getAreaLoss(0, 10, 0, 10, outImg))
+
     if maxFractalDepth < areas[biggestLossIndex]['depth']:
         maxFractalDepth = areas[biggestLossIndex]['depth']
         print('new max depth', maxFractalDepth)
 
 
 npImg = np.uint8(outImg)
-cv2.imwrite('frac.jpg', npImg)
+cv2.imwrite('out/frac.jpg', npImg)
