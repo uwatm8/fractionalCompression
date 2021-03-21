@@ -14,7 +14,8 @@ img = cv2.imread(path)
 
 def getAreaAverage(x1, x2, y1, y2, img):
     if x2-x1 == 0 or y2-x1 == 0:
-        print('broooo')
+        print('getting area average of empty slice')
+        return [0, 0, 0]
 
     arrSlice = img[y1:y2, x1:x2]
 
@@ -170,12 +171,13 @@ for i in range(maxDepth):
     doAreaFractal(areas[biggestLossIndex], areas)
     if debug and not i % 1000:
         if i != 0:
-            print('i', i, 'loss', getAreaLoss(0, 10, 0, 10, outImg))
+            print('i', i)
 
     if maxFractalDepth < areas[biggestLossIndex]['depth']:
         maxFractalDepth = areas[biggestLossIndex]['depth']
         print('new max depth', maxFractalDepth)
 
+print('estimated size: ', ((maxDepth*3 + maxDepth*maxFractalDepth)/4000), 'kb')
 
 npImg = np.uint8(outImg)
 cv2.imwrite('out/frac.jpg', npImg)

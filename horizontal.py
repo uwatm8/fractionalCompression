@@ -32,4 +32,4 @@ for i in range(height):
 
 npImg = np.uint8(diff)
 # cv2.imshow("image", np.uint8(diff))
-cv2.imwrite('out.jpg', npImg)
+cv2.imwrite('/out/out.jpg', npImg)
